@@ -3,22 +3,24 @@
 
 #include <stdint.h>
 
+#ifndef BITS
 #define BITS 2048
+#endif
 
 
 typedef uint_fast64_t uint64;
 
 typedef struct
 {
-    int size;
-    uint64 uints[BITS / 64 + 2];
-} BigInteger;
+    int len;
+    uint64 arr[BITS / 64 + 2];
+} BigInt;
 
 
-int cmp(const BigInteger *x, const BigInteger *y);
+int cmp(const BigInt *x, const BigInt *y);
 
-BigInteger modPow(const BigInteger *b, BigInteger e,
-                  const BigInteger *m);
+BigInt modPow(const BigInt *b, BigInt e,
+              const BigInt *m);
 
 
 #endif

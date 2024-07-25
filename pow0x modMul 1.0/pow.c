@@ -1,58 +1,53 @@
 #include "pow.h"
 #include <stdlib.h>
 
-#define B_MOD 14
+#define B_MOD 12
 #define N_MOD (1 << (B_MOD + 1))
 #define M_MOD ((1 << B_MOD) - 1)
 
-#define B_POW 6
+#define B_POW 5
 #define N_POW (1 << B_POW)
 #define M_POW (N_POW - 1)
 
 
 typedef __uint128_t uint128;
 
-BigInteger Zero()
+BigInt Zero()
 {
-    BigInteger r;
-    r.size = 1, r.uints[0] = 0;
+    BigInt r;
+    r.len = 1, r.arr[0] = 0;
     return r;
 }
 
-BigInteger One()
+BigInt One()
 {
-    BigInteger r;
-    r.size = 1, r.uints[0] = 1;
+    BigInt r;
+    r.len = 1, r.arr[0] = 1;
     return r;
 }
 
 
-int eq0(const BigInteger *x)
-{
-    return x->size == 1 && x->uints[0] == 0;
-}
-
-int cmp(const BigInteger *x, const BigInteger *y)
+int cmp(const BigInt *x, const BigInt *y)
 {
     int i;
 
-    if (x->size != y->size)
-        return x->size > y->size ? 1 : -1;
+    if (x->len != y->len)
+        return x->len > y->len ? 1 : -1;
 
-    for (i = x->size - 1; i > -1; --i)
-        if (x->uints[i] != y->uints[i])
-            return x->uints[i] > y->uints[i] ? 1 : -1;
+    for (i = x->len - 1; i > -1; --i)
+        if (x->arr[i] != y->arr[i])
+            return x->arr[i] > y->arr[i] ? 1 : -1;
 
     return 0;
 }
 
-int index(const BigInteger *x,
-          const BigInteger arr[], int i1, int i2)
+int index(const BigInt *x,
+          const BigInt m_mul[], int i1, int i2)
 {
     while (1)
     {
         int i = (i1 + i2) / 2,
-            c = cmp(x, &arr[i]);
+            c = cmp(x, &m_mul[i]);
 
         if (c == 0)
             return i;
@@ -66,93 +61,85 @@ int index(const BigInteger *x,
 }
 
 
-void borrow(uint64 *uints)
-{
-    while (*uints == 0)
-        --*uints++;
-
-    --*uints;
-}
-
-void reduce(BigInteger *x)
-{
-    while (x->uints[x->size - 1] == 0 && x->size > 1)
-        --x->size;
-}
-
-void shl(BigInteger *x, int by)
+void shl(BigInt *x, int by)
 {
     const uint64 MASK_L = (uint64)-1 << (64 - by);
-    int i = x->size++;
-    x->uints[i] = (x->uints[i - 1] & MASK_L) >> (64 - by);
+    int i = x->len++;
+    x->arr[i] = (x->arr[i - 1] & MASK_L) >> (64 - by);
 
     for (--i; i > 0; --i)
-        x->uints[i] = (x->uints[i - 1] & MASK_L) >> (64 - by) |
-                      x->uints[i] << by;
+        x->arr[i] = (x->arr[i - 1] & MASK_L) >> (64 - by) |
+                    x->arr[i] << by;
 
-    x->uints[0] <<= by;
+    x->arr[0] <<= by;
 
-    if (x->uints[x->size - 1] == 0)
-        --x->size;
+    if (x->arr[x->len - 1] == 0)
+        --x->len;
 }
 
-void shr(BigInteger *x, int by)
+void shr(BigInt *x, int by)
 {
     const uint64 MASK_R = (uint64)-1 >> (64 - by);
     int i;
 
-    for (i = 0; i < x->size - 1; ++i)
-        x->uints[i] = (x->uints[i + 1] & MASK_R) << (64 - by) |
-                      x->uints[i] >> by;
+    for (i = 0; i < x->len - 1; ++i)
+        x->arr[i] = (x->arr[i + 1] & MASK_R) << (64 - by) |
+                    x->arr[i] >> by;
 
-    x->uints[i] >>= by, reduce(x);
+    x->arr[i] >>= by;
+
+    if (x->arr[i] == 0 && x->len > 1)
+        --x->len;
 }
 
-void addi(BigInteger *x, const BigInteger *y)
+void add(BigInt *x, const BigInt *y)
 {
     int sml, big, i;
-    const BigInteger *b;
+    const BigInt *b;
     uint128 t;
     uint64 c = 0;
 
-    if (x->size < y->size)
-        sml = x->size, big = y->size, b = y;
+    if (x->len < y->len)
+        sml = x->len, big = y->len, b = y;
     else
-        sml = y->size, big = x->size, b = x;
+        sml = y->len, big = x->len, b = x;
 
     for (i = 0; i < sml; ++i)
-        t = (uint128)x->uints[i] + y->uints[i] + c,
-        x->uints[i] = t, c = t >> 64;
+        t = (uint128)x->arr[i] + y->arr[i] + c,
+        x->arr[i] = t, c = t >> 64;
 
     while (i < big)
-        t = (uint128)b->uints[i] + c,
-        x->uints[i++] = t, c = t >> 64;
+        t = (uint128)b->arr[i] + c,
+        x->arr[i++] = t, c = t >> 64;
 
-    x->size = big;
+    x->len = big;
 
     if (c > 0)
-        x->uints[x->size++] = c;
+        x->arr[x->len++] = c;
 }
 
-void subi(BigInteger *x, const BigInteger *y)
+void sub(BigInt *x, const BigInt *y)
 {
+    uint128 t;
+    uint64 c = 0;
     int i;
 
-    for (i = 0; i < y->size; ++i)
-    {
-        if (x->uints[i] < y->uints[i])
-            borrow(x->uints + i + 1);
+    for (i = 0; i < y->len; ++i)
+        t = (uint128)x->arr[i] - y->arr[i] - c,
+        x->arr[i] = t, c = t << 63 >> 127;
 
-        x->uints[i] -= y->uints[i];
-    }
+    while (i < x->len)
+        t = (uint128)x->arr[i] - c,
+        x->arr[i++] = t, c = t << 63 >> 127;
 
-    reduce(x);
+    while (x->arr[--i] == 0 && x->len > 1)
+        --x->len;
 }
 
 
-BigInteger muld(const BigInteger *x, uint64 y)
+BigInt muld(const BigInt *x, uint64 y)
 {
-    BigInteger r;
+    BigInt r;
     uint128 t;
     uint64 c = 0;
     int i;
@@ -160,61 +147,63 @@ BigInteger muld(const BigInteger *x, uint64 y)
     if (y == 0)
         return Zero();
 
-    for (i = 0; i < x->size; ++i)
-        t = (uint128)x->uints[i] * y + c,
-        r.uints[i] = t, c = t >> 64;
+    for (i = 0; i < x->len; ++i)
+        t = (uint128)x->arr[i] * y + c,
+        r.arr[i] = t, c = t >> 64;
 
-    r.size = x->size;
+    r.len = x->len;
 
     if (c > 0)
-        r.uints[r.size++] = c;
+        r.arr[r.len++] = c;
 
     return r;
 }
 
-BigInteger modMul(const BigInteger *x, BigInteger y,
-                  const BigInteger mod[])
+BigInt modMul(const BigInt *x, BigInt y,
+              const BigInt m_mul[])
 {
-    BigInteger r = Zero(), t;
+    const BigInt zero = Zero();
+    BigInt r = Zero(), t;
     unsigned temp[BITS / B_MOD + 1];
     int i;
 
-    for (i = 0; !eq0(&y); shr(&y, B_MOD))
-        temp[i++] = y.uints[0] & M_MOD;
+    for (i = 0; cmp(&y, &zero) > 0; shr(&y, B_MOD))
+        temp[i++] = y.arr[0] & M_MOD;
 
     for (--i; i > -1; --i)
-        t = muld(x, temp[i]), shl(&r, B_MOD), addi(&r, &t),
-        subi(&r, &mod[index(&r, mod, 0, N_MOD)]);
+        t = muld(x, temp[i]), shl(&r, B_MOD), add(&r, &t),
+        sub(&r, &m_mul[index(&r, m_mul, 0, N_MOD)]);
 
     return r;
 }
 
-BigInteger modPow(const BigInteger *b, BigInteger e,
-                  const BigInteger *m)
+BigInt modPow(const BigInt *b, BigInt e,
+              const BigInt *m)
 {
-    BigInteger r = One(), t = Zero(),
-               *mod = malloc(sizeof(BigInteger) * N_MOD),
-               *pow = malloc(sizeof(BigInteger) * N_POW);
+    const BigInt zero = Zero();
+    BigInt r = One(), t = Zero(),
+           *m_mul = malloc(sizeof(BigInt) * N_MOD),
+           *b_pow = malloc(sizeof(BigInt) * N_POW);
     unsigned temp[BITS / B_POW + 1];
     int i, j;
 
     for (i = 0; i < N_MOD; ++i)
-        mod[i] = t, addi(&t, m);
+        m_mul[i] = t, add(&t, m);
 
-    for (pow[0] = One(), i = 1; i < N_POW; ++i)
-        pow[i] = modMul(&pow[i - 1], *b, mod);
+    for (b_pow[0] = One(), i = 1; i < N_POW; ++i)
+        b_pow[i] = modMul(&b_pow[i - 1], *b, m_mul);
 
-    for (i = 0; !eq0(&e); shr(&e, B_POW))
-        temp[i++] = e.uints[0] & M_POW;
+    for (i = 0; cmp(&e, &zero) > 0; shr(&e, B_POW))
+        temp[i++] = e.arr[0] & M_POW;
 
     for (--i; i > -1; --i)
     {
         for (j = 0; j < B_POW; ++j)
-            r = modMul(&r, r, mod);
+            r = modMul(&r, r, m_mul);
 
-        r = modMul(&r, pow[temp[i]], mod);
+        r = modMul(&r, b_pow[temp[i]], m_mul);
     }
 
-    free(mod), free(pow);
+    free(m_mul), free(b_pow);
     return r;
 }

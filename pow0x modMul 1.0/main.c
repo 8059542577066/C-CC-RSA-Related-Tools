@@ -25,44 +25,44 @@ int isall0(const char *str)
 }
 
 
-void scan(const char *str, BigInteger *r)
+void scan(const char *str, BigInt *r)
 {
     char buffer[MAX_LEN + 1];
-    int size = strlen(str), i = 0, j;
+    int len = strlen(str), i = 0, j;
     unsigned *ptr;
 
-    if (size % 16 != 0)
-        while (i < 16 - size % 16)
+    if (len % 16 != 0)
+        while (i < 16 - len % 16)
             buffer[i++] = '0';
 
     buffer[i] = '\0', strcat(buffer, str);
-    r->size = strlen(buffer) / 16;
+    r->len = strlen(buffer) / 16;
 
-    for (i = 0, j = r->size - 1; j > -1; i += 16, --j)
-        ptr = (unsigned *)&r->uints[j],
+    for (i = 0, j = r->len - 1; j > -1; i += 16, --j)
+        ptr = (unsigned *)&r->arr[j],
         sscanf(buffer + i, "%08X", ptr + 1),
         sscanf(buffer + i + 8, "%08X", ptr);
 
-    while (r->uints[r->size - 1] == 0 && r->size > 1)
-        --r->size;
+    while (r->arr[r->len - 1] == 0 && r->len > 1)
+        --r->len;
 }
 
-void print(const BigInteger *n)
+void print(const BigInt *n)
 {
-    int i = n->size - 1;
+    int i = n->len - 1;
 
-    if (n->uints[i] >> 32 > 0)
+    if (n->arr[i] >> 32 > 0)
     {
-        printf("%X", (unsigned)(n->uints[i] >> 32));
-        printf("%08X", (unsigned)n->uints[i]);
+        printf("%X", (unsigned)(n->arr[i] >> 32));
+        printf("%08X", (unsigned)n->arr[i]);
     }
     else
-        printf("%X", (unsigned)n->uints[i]);
+        printf("%X", (unsigned)n->arr[i]);
 
     for (--i; i > -1; --i)
     {
-        printf("%08X", (unsigned)(n->uints[i] >> 32));
-        printf("%08X", (unsigned)n->uints[i]);
+        printf("%08X", (unsigned)(n->arr[i] >> 32));
+        printf("%08X", (unsigned)n->arr[i]);
     }
 }
 
@@ -87,7 +87,7 @@ int main(int argc, char **argv)
         printf(" *** ERROR: [m] is 0");
     else
     {
-        BigInteger b, e, m, r;
+        BigInt b, e, m, r;
         scan(argv[1], &b);
         scan(argv[2], &e);
         scan(argv[3], &m);
