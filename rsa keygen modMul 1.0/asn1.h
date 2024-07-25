@@ -3,22 +3,20 @@
 
 #include "rsa.h"
 
-#define SIZE BITS / 2 * 12 / 8
 
-
-typedef unsigned char byte;
+typedef uint_fast8_t byte;
 
 typedef struct
 {
-    int size;
-    byte bytes[SIZE];
+    int len;
+    byte arr[BITS / 2 * 12 / 8];
 } Bytes;
 
 
-void printKey(const BigInteger *p, const BigInteger *q,
-              const BigInteger *e, const BigInteger *d, const BigInteger *n,
-              const BigInteger *dP, const BigInteger *dQ,
-              const BigInteger *qInv);
+void printKey(const BigInt *p, const BigInt *q,
+              const BigInt *e, const BigInt *d, const BigInt *n,
+              const BigInt *dP, const BigInt *dQ,
+              const BigInt *qInv);
 
 
 #endif

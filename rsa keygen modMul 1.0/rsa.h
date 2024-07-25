@@ -3,21 +3,23 @@
 
 #include <stdint.h>
 
+#ifndef BITS
 #define BITS 2048
+#endif
 
 
 typedef uint_fast64_t uint64;
 
 typedef struct
 {
-    int size;
-    uint64 uints[BITS / 64 + 2];
-} BigInteger;
+    int len;
+    uint64 arr[BITS / 64 + 2];
+} BigInt;
 
 
-void setKey(int bits, BigInteger *p, BigInteger *q,
-            BigInteger *e, BigInteger *d, BigInteger *n,
-            BigInteger *dP, BigInteger *dQ, BigInteger *qInv);
+void setKey(int bits, BigInt *p, BigInt *q,
+            BigInt *e, BigInt *d, BigInt *n,
+            BigInt *dP, BigInt *dQ, BigInt *qInv);
 
 
 #endif
