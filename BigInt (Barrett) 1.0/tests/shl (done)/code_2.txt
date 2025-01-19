@@ -1,0 +1,13 @@
+int main(void)
+{
+    BigInt x("1337");
+
+    for (int i = 0; i < 24; ++i)
+    {
+        x <<= 203;
+        x.print();
+        std::printf("\n\n");
+    }
+
+    return 0;
+}

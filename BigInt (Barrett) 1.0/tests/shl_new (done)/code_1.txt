@@ -1,0 +1,14 @@
+int main(void)
+{
+    BigInt x("72fd728c05");
+    (x << 57).print();
+    std::printf("\n\n");
+    (x << 128).print();
+    std::printf("\n\n");
+    (x << 129).print();
+    std::printf("\n\n");
+    (x << 191).print();
+    std::printf("\n\n");
+
+    return 0;
+}
