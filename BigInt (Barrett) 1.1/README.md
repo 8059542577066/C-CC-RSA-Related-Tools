@@ -14,10 +14,10 @@
  2. Navigate into the project.<br/>
    `cd BigInt\ (Barrett)\ 1.1`
  3. Build the project using these commands. Make sure that your GCC compiler is version >= 5.1.0 (c++11 support).<br/>
-   `g++ bigint.cc -O3 -c`
-   `g++ asn1.cc -O3 -c`
-   `g++ bigint.o pow0x.cc -O3 -o pow0x`
-   `g++ bigint.o asn1.o keygen.cc -O3 -o keygen`
+   `g++ bigint.cc -O3 -c`<br/>
+   `g++ asn1.cc -O3 -c`<br/>
+   `g++ bigint.o pow0x.cc -O3 -o pow0x`<br/>
+   `g++ bigint.o asn1.o keygen.cc -O3 -o keygen`<br/>
 
 ## (2) pow0x
  This program calculates **modular exponentiation** in hexadecimal. Modular exponentiation is the key algorithm used in Diffie-Hellman key exchange and also in RSA public key crypto system. I built this program first to make sure that my custom `BigInt` class can perform necessary calculations for RSA fast enough.<br/><br/>
