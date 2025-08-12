@@ -16,6 +16,10 @@
 #define N_ARY 5
 #endif
 
+#ifndef KARA_CUT
+#define KARA_CUT 52
+#endif
+
 
 #ifndef SUB_X_LT_Y
 #define SUB_X_LT_Y 1
@@ -46,12 +50,14 @@ class LIB_CLASS BigInt
     uint64 *arr;
 
     BigInt(int cap);
+    BigInt(uint64 *ptr, int len);
 
     BigInt &operator*=(uint64 val);
     BigInt operator*(uint64 val) const;
 
     void __add(const BigInt &other, int pad);
     void __init(const BigInt &m, BigInt &q) const;
+    void __kara(const BigInt &x, const BigInt &y);
     void __mul(const BigInt &x, const BigInt &y,
                const BigInt &m, const BigInt &q,
                BigInt &temp1, BigInt &temp2, bool first);
@@ -59,6 +65,7 @@ class LIB_CLASS BigInt
 public:
     BigInt();
     BigInt(const BigInt &other);
+    BigInt(BigInt &&other);
     ~BigInt();
 
     bool operator==(const BigInt &other) const;
@@ -69,6 +76,7 @@ public:
     bool operator>=(const BigInt &other) const;
 
     BigInt &operator=(const BigInt &other);
+    BigInt &operator=(BigInt &&other);
     BigInt &operator=(uint64);
 
     BigInt &operator+=(const BigInt &other);

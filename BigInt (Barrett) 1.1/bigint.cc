@@ -5,6 +5,10 @@ BigInt::BigInt(int cap)
     : cap(cap > 0 ? cap : 1),
       arr(new uint64[this->cap]) {}
 
+BigInt::BigInt(uint64 *ptr, int len)
+    : cap(0), len(len),
+      arr(ptr) {}
+
 
 BigInt &BigInt::operator*=(uint64 val)
 {
@@ -93,18 +97,83 @@ void BigInt::__init(const BigInt &m, BigInt &q) const
     q = 1, q <<= m.bits() * 2, q /= m;
 }
 
+void BigInt::__kara(const BigInt &x, const BigInt &y)
+{
+    const BigInt *s, *b;
+
+    if (x.len < y.len)
+        s = &x, b = &y;
+    else
+        s = &y, b = &x;
+
+    if (b->len <= KARA_CUT)
+        *this = x * y;
+    else
+    {
+        int b1_top = b->len - 1,
+            b0_top = b1_top / 2, b1_bot = b0_top + 1;
+
+        if (s->len > b1_bot)
+        {
+            int s1_top = s->len - 1,
+                s0_top = b0_top, s1_bot = s0_top + 1;
+            BigInt b0(b->arr, b0_top + 1),
+                b1(&b->arr[b1_bot], b1_top - b1_bot + 1),
+                s0(s->arr, s0_top + 1),
+                s1(&s->arr[s1_bot], s1_top - s1_bot + 1),
+                temp1, temp2, temp3;
+
+            while (b0.arr[b0.len - 1] == 0 && b0.len > 1)
+                --b0.len;
+
+            while (s0.arr[s0.len - 1] == 0 && s0.len > 1)
+                --s0.len;
+
+            temp1.__kara(b1, s1), temp2.__kara(b0, s0);
+            temp3.__kara(b1 + b0, s1 + s0);
+            b0.arr = nullptr, b1.arr = nullptr;
+            s0.arr = nullptr, s1.arr = nullptr;
+            temp3 -= temp1, temp3 -= temp2;
+            *this = BigInt(b->len + s->len), *this = temp2;
+            this->__add(temp3, b1_bot);
+            this->__add(temp1, b1_bot * 2);
+        }
+        else
+        {
+            int s0_top = s->len - 1;
+            BigInt b0(b->arr, b0_top + 1),
+                b1(&b->arr[b1_bot], b1_top - b1_bot + 1),
+                s0(s->arr, s0_top + 1),
+                temp1, temp2;
+
+            while (b0.arr[b0.len - 1] == 0 && b0.len > 1)
+                --b0.len;
+
+            while (s0.arr[s0.len - 1] == 0 && s0.len > 1)
+                --s0.len;
+
+            temp1.__kara(b1, s0), temp2.__kara(b0, s0);
+            b0.arr = nullptr, b1.arr = nullptr;
+            s0.arr = nullptr;
+            *this = BigInt(b->len + s->len), *this = temp2;
+            this->__add(temp1, b1_bot);
+        }
+    }
+}
+
 void BigInt::__mul(const BigInt &x, const BigInt &y,
                    const BigInt &m, const BigInt &q,
                    BigInt &temp1, BigInt &temp2, bool first)
 {
     if (first)
     {
-        *this = x, *this *= y, *this %= m;
+        this->__kara(x, y), *this %= m;
         return;
     }
 
-    temp1 = x, temp1 *= y, temp2 = temp1;
-    temp2 *= q, temp2 >>= m.bits() * 2, temp2 *= m, temp1 -= temp2;
+    temp1.__kara(x, y);
+    temp2.__kara(temp1, q), temp2 >>= m.bits() * 2;
+    temp2.__kara(temp2, m), temp1 -= temp2;
     *this = temp1 < m ? temp1 : temp1 -= m;
 }
 
@@ -122,6 +191,13 @@ BigInt::BigInt(const BigInt &other)
 {
     for (int i = 0; i < this->len; ++i)
         this->arr[i] = other.arr[i];
+}
+
+BigInt::BigInt(BigInt &&other)
+    : cap(other.cap), len(other.len),
+      arr(other.arr)
+{
+    other.arr = nullptr;
 }
 
 BigInt::~BigInt()
@@ -216,6 +292,14 @@ BigInt &BigInt::operator=(const BigInt &other)
     for (int i = 0; i < this->len; ++i)
         this->arr[i] = other.arr[i];
 
+    return *this;
+}
+
+BigInt &BigInt::operator=(BigInt &&other)
+{
+    delete this->arr;
+    this->cap = other.cap, this->len = other.len;
+    this->arr = other.arr, other.arr = nullptr;
     return *this;
 }
 

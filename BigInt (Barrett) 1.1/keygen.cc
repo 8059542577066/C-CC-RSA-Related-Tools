@@ -58,7 +58,7 @@ double set_rsa_key(int bits,
                    BigInt &p, BigInt &q,
                    BigInt &dp, BigInt &dq, BigInt &qinv)
 {
-    std::srand(time(0));
+    std::srand(std::time(0));
     auto time1 = std::clock();
     n = rand_msb(bits), q = n / p;
     next_prime(p), next_prime(q);
@@ -102,9 +102,10 @@ void print_err(const char *msg)
 
 int main(int argc, char **argv)
 {
-    if (argc != 3)
+    if (argc < 2 || argc > 3)
     {
         print_err("keygen [key len] [hex prime]");
+        std::printf("\n        or  keygen [key len]");
         return -1;
     }
 
@@ -114,6 +115,14 @@ int main(int argc, char **argv)
     {
         print_err("[key len] too small");
         return -1;
+    }
+    else if (argc == 2)
+    {
+        std::srand(std::time(0));
+        char *str = rand(bits / 2).c_str();
+        std::printf(str);
+        delete[] str;
+        return 0;
     }
 
     BigInt p;
