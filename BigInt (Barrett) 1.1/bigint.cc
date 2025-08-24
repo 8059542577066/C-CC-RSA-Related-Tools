@@ -92,9 +92,9 @@ void BigInt::__add(const BigInt &other, int pad)
         this->arr[this->len++] = c;
 }
 
-void BigInt::__init(const BigInt &m, BigInt &q) const
+void BigInt::__init(const BigInt &m)
 {
-    q = 1, q <<= m.bits() * 2, q /= m;
+    *this = 1, *this <<= m.bits() * 2, *this /= m;
 }
 
 void BigInt::__kara(const BigInt &x, const BigInt &y)
@@ -594,22 +594,38 @@ BigInt BigInt::operator>>(int by) const
 
 BigInt &BigInt::operator*=(const BigInt &other)
 {
-    BigInt res(this->len + other.len), t(this->len + 1);
-    res.len = 1, res.arr[0] = 0;
-
-    for (int i = 0; i < other.len; ++i)
-        t = *this, t *= other.arr[i], res.__add(t, i);
-
-    return *this = res;
+    return *this = *this * other;
 }
 
 BigInt BigInt::operator*(const BigInt &other) const
 {
-    BigInt res(this->len + other.len), t(this->len + 1);
-    res.len = 1, res.arr[0] = 0;
+    if (this->len == 1 && this->arr[0] == 0)
+        return BigInt();
+    else if (other.len == 1 && other.arr[0] == 0)
+        return BigInt();
+
+    BigInt res(this->len + other.len);
+    res.len = res.cap;
+
+    for (int i = 0; i < res.len; ++i)
+        res.arr[i] = 0;
 
     for (int i = 0; i < other.len; ++i)
-        t = *this, t *= other.arr[i], res.__add(t, i);
+    {
+        __uint128_t t_mul, t_add;
+        uint64 c_mul = 0, c_add = 0;
+
+        for (int j = 0; j < this->len; ++j)
+            t_mul = (__uint128_t)this->arr[j] * other.arr[i] + c_mul,
+            c_mul = t_mul >> 64, t_mul &= (uint64)-1,
+            t_add = t_mul + res.arr[i + j] + c_add,
+            c_add = t_add >> 64, res.arr[i + j] = t_add;
+
+        res.arr[i + this->len] += c_mul + c_add;
+    }
+
+    if (res.arr[res.len - 1] == 0)
+        --res.len;
 
     return res;
 }
@@ -705,7 +721,8 @@ BigInt BigInt::operator/(const BigInt &other) const
 }
 
 
-BigInt BigInt::pow(BigInt b, BigInt e, const BigInt &m)
+BigInt BigInt::pow(const BigInt &b, BigInt e,
+                   const BigInt &m)
 {
     if (m.len == 1 && m.arr[0] == 0)
         throw MOD_DIV_BY_0;
@@ -716,13 +733,15 @@ BigInt BigInt::pow(BigInt b, BigInt e, const BigInt &m)
 
     BigInt res, zero, q, temp1, temp2,
         *b_pow = new BigInt[1 << N_ARY];
-    res.arr[0] = 1, res.__init(m, q), b_pow[0].arr[0] = 1;
-    b_pow[1].__mul(b_pow[0], b, m, q, temp1, temp2, true);
+    res.arr[0] = 1, q.__init(m), b_pow[0].arr[0] = 1;
+    b_pow[1].__mul(b_pow[0], b, m,
+                   q, temp1, temp2, true);
     unsigned *e_arr = new unsigned[e.bits() / N_ARY + 1];
     int i;
 
     for (i = 2; i < 1 << N_ARY; ++i)
-        b_pow[i].__mul(b_pow[i - 1], b_pow[1], m, q, temp1, temp2, false);
+        b_pow[i].__mul(b_pow[i - 1], b_pow[1], m,
+                       q, temp1, temp2, false);
 
     for (i = 0; e > zero; e >>= N_ARY)
         e_arr[i++] = e.arr[0] & ((1 << N_ARY) - 1);
@@ -730,9 +749,11 @@ BigInt BigInt::pow(BigInt b, BigInt e, const BigInt &m)
     for (--i; i > -1; --i)
     {
         for (int j = 0; j < N_ARY; ++j)
-            res.__mul(res, res, m, q, temp1, temp2, false);
+            res.__mul(res, res, m,
+                      q, temp1, temp2, false);
 
-        res.__mul(res, b_pow[e_arr[i]], m, q, temp1, temp2, false);
+        res.__mul(res, b_pow[e_arr[i]], m,
+                  q, temp1, temp2, false);
     }
 
     delete[] b_pow, delete[] e_arr;

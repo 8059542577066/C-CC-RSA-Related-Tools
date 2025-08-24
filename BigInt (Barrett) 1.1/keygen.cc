@@ -104,8 +104,8 @@ int main(int argc, char **argv)
 {
     if (argc < 2 || argc > 3)
     {
-        print_err("keygen [key len] [hex prime]");
-        std::printf("\n        or  keygen [key len]");
+        print_err("keygen [key len] [hex prime]\n"
+                  "        or  keygen [key len]");
         return -1;
     }
 

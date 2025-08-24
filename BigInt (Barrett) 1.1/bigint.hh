@@ -56,7 +56,7 @@ class LIB_CLASS BigInt
     BigInt operator*(uint64 val) const;
 
     void __add(const BigInt &other, int pad);
-    void __init(const BigInt &m, BigInt &q) const;
+    void __init(const BigInt &m);
     void __kara(const BigInt &x, const BigInt &y);
     void __mul(const BigInt &x, const BigInt &y,
                const BigInt &m, const BigInt &q,
@@ -97,7 +97,8 @@ public:
     BigInt &operator/=(const BigInt &other);
     BigInt operator/(const BigInt &other) const;
 
-    static BigInt pow(BigInt b, BigInt e, const BigInt &m);
+    static BigInt pow(const BigInt &b, BigInt e,
+                      const BigInt &m);
     static BigInt inv(const BigInt &a, const BigInt &n);
 
     int bits() const;
