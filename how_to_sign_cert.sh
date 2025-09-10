@@ -21,3 +21,7 @@ openssl x509 -req -in req.csr \
   -CA ca_cert.crt -CAkey ca_priv.key -CAcreateserial \
   -out cert.crt -days 3650 -sha256
 read -p "Press Enter to continue..."
+
+echo '***** 6) Append certificate chain.'
+cat cert.crt ca_cert.crt > cert_chain.crt
+read -p "Press Enter to continue..."
