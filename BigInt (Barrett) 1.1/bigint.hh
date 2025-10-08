@@ -2,7 +2,7 @@
 #define BIGINT_HH
 
 
-#ifdef __WIN32__
+#ifdef _WIN32
 #ifdef BUILD_LIB
 #define LIB_CLASS __declspec(dllexport)
 #else
@@ -17,7 +17,7 @@
 #endif
 
 #ifndef KARA_CUT
-#define KARA_CUT 52
+#define KARA_CUT 72
 #endif
 
 

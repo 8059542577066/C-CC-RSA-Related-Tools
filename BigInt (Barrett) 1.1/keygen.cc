@@ -1,8 +1,8 @@
 #include "bigint.hh"
 #include "asn1.hh"
 #include <cstdlib>
-#include <ctime>
 #include <cstdio>
+#include <ctime>
 
 
 bool prime(const BigInt &n, int rep)
@@ -12,12 +12,18 @@ bool prime(const BigInt &n, int rep)
 
     for (int i = 0; i < rep; ++i)
     {
-        a = std::rand();
+        a = std::rand() + RAND_MAX;
 
         if (BigInt::pow(a, n - one, n) != one)
+        {
+            std::fprintf(stderr, "-");
             return false;
+        }
+
+        std::fprintf(stderr, "+");
     }
 
+    std::fprintf(stderr, "\n");
     return true;
 }
 
@@ -29,7 +35,7 @@ void next_prime(BigInt &n)
     if (n % two == zero)
         n += one;
 
-    while (!prime(n, 2))
+    while (!prime(n, 4))
         n += two;
 }
 

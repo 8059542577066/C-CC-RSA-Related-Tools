@@ -2,7 +2,7 @@
 #define ASN1_HH
 
 
-#ifdef __WIN32__
+#ifdef _WIN32
 #ifdef BUILD_LIB
 #define LIB_CLASS __declspec(dllexport)
 #else

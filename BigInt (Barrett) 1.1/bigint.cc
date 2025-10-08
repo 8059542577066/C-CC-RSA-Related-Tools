@@ -81,12 +81,9 @@ void BigInt::__add(const BigInt &other, int pad)
         t = (__uint128_t)this->arr[i] + other.arr[i - pad] + c,
         this->arr[i] = t, c = t >> 64;
 
-    if (this->len < other.len + pad)
-        for (i -= pad; i < other.len; ++i)
-            t = other.arr[i] + c,
-            this->arr[i + pad] = t, c = t >> 64;
-
-    this->len = other.len + pad;
+    for (this->len = other.len + pad; i < this->len; ++i)
+        t = (__uint128_t)other.arr[i - pad] + c,
+        this->arr[i] = t, c = t >> 64;
 
     if (c > 0)
         this->arr[this->len++] = c;
@@ -131,8 +128,6 @@ void BigInt::__kara(const BigInt &x, const BigInt &y)
 
             temp1.__kara(b1, s1), temp2.__kara(b0, s0);
             temp3.__kara(b1 + b0, s1 + s0);
-            b0.arr = nullptr, b1.arr = nullptr;
-            s0.arr = nullptr, s1.arr = nullptr;
             temp3 -= temp1, temp3 -= temp2;
             *this = BigInt(b->len + s->len), *this = temp2;
             this->__add(temp3, b1_bot);
@@ -153,8 +148,6 @@ void BigInt::__kara(const BigInt &x, const BigInt &y)
                 --s0.len;
 
             temp1.__kara(b1, s0), temp2.__kara(b0, s0);
-            b0.arr = nullptr, b1.arr = nullptr;
-            s0.arr = nullptr;
             *this = BigInt(b->len + s->len), *this = temp2;
             this->__add(temp1, b1_bot);
         }
@@ -180,10 +173,7 @@ void BigInt::__mul(const BigInt &x, const BigInt &y,
 
 BigInt::BigInt()
     : cap(1), len(1),
-      arr(new uint64[1])
-{
-    this->arr[0] = 0;
-}
+      arr(new uint64[1]()) {}
 
 BigInt::BigInt(const BigInt &other)
     : cap(other.len), len(other.len),
@@ -202,7 +192,8 @@ BigInt::BigInt(BigInt &&other)
 
 BigInt::~BigInt()
 {
-    delete[] this->arr;
+    if (this->cap > 0)
+        delete[] this->arr;
 }
 
 
