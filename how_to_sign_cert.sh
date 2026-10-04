@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 echo '***** 1) Generate CA private key.'
 keygen 2048 $(keygen 2048) > ca_priv.key
